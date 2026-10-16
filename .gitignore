@@ -147,3 +147,10 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# The test corpus, conversions and reports: Node Library and forum code, which never goes into a repo.
+data/
+# NodeBox 3 checkout, GraalJS jars and the compiled checker (check/setup.sh).
+.cache/
+.wrangler/
+.dev.vars

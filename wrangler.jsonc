@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nodebox-converter",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  // The system prompt is bundled as text.
+  "rules": [{ "type": "Text", "globs": ["**/*.md"], "fallthrough": true }],
+  "kv_namespaces": [
+    // Finished conversions, kept 30 days. Create with `npx wrangler kv namespace create converter-cache` and put its id here.
+    { "binding": "CACHE", "id": "REPLACE_WITH_KV_NAMESPACE_ID" }
+  ],
+  "ratelimits": [
+    // Conversions that reach the model, per client IP.
+    { "name": "RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 20, "period": 60 } }
+  ],
+  "vars": {
+    "MODEL": "claude-haiku-5-5"
+  }
+  // Secrets (wrangler secret put, or .dev.vars locally):
+  //   ANTHROPIC_API_KEY (op://NodeBox/NodeBox App/Anthropic/ANTHROPIC_API_KEY)
+}

@@ -1,0 +1,28 @@
+{
+  "name": "nodebox-converter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Converts NodeBox 3 Python and Clojure code to NodeBox 4 JavaScript: a Cloudflare Worker, plus the checker that measures conversions against NodeBox 3.",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "types": "wrangler types",
+    "typecheck": "tsc --noEmit",
+    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.ts",
+    "convert": "node --disable-warning=ExperimentalWarning scripts/convert.ts",
+    "check:setup": "sh check/setup.sh",
+    "check:testset": "python3 check/inventory.py \"data/Node Library/node library 3-7.ndbx\" \"data/Node Library\" > data/nl_inventory.json && python3 check/testset.py data/forum_corpus.json data/forum_ports.json \"data/Node Library\" data/nl_inventory.json > data/testset.json",
+    "check:ref": "python3 check/run.py ref data/testset.json data/ref.json",
+    "check:js": "python3 check/run.py js data/testset.json data/js.json data/out",
+    "check:report": "python3 check/compare.py data/testset.json data/ref.json data/js.json data/out > data/report.json && python3 check/summary.py data/report.json"
+  },
+  "dependencies": {
+    "acorn": "8.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "typescript": "5.9.3",
+    "wrangler": "4.149.0"
+  }
+}
