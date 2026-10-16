@@ -19,5 +19,5 @@
     "MODEL": "claude-haiku-5-5"
   }
   // Secrets (wrangler secret put, or .dev.vars locally):
-  //   ANTHROPIC_API_KEY (op://NodeBox/NodeBox App/Anthropic/ANTHROPIC_API_KEY)
+  //   ANTHROPIC_API_KEY (op://NodeBox/NodeBox Converter/Anthropic/ANTHROPIC_API_KEY)
 }

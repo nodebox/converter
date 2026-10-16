@@ -41,7 +41,7 @@ npm test && npm run typecheck
 npm run dev                      # needs ANTHROPIC_API_KEY in .dev.vars
 ```
 
-Deploying needs a KV namespace (`npx wrangler kv namespace create converter-cache`, then its id in `wrangler.jsonc`), the `ANTHROPIC_API_KEY` secret (from `op://NodeBox/NodeBox App/Anthropic/ANTHROPIC_API_KEY`), and a monthly spend limit on that key's workspace in the Anthropic console.
+Deploying needs a KV namespace (`npx wrangler kv namespace create converter-cache`, then its id in `wrangler.jsonc`), the `ANTHROPIC_API_KEY` secret (from `op://NodeBox/NodeBox Converter/Anthropic/ANTHROPIC_API_KEY`), and a monthly spend limit on that key's workspace in the Anthropic console.
 
 ## Running the checker
 
@@ -59,7 +59,7 @@ Then, with JDK 21, Maven and Python 3:
 npm run check:setup        # builds NodeBox 3 in .cache/, compiles the checker, makes data/fixtures
 npm run check:testset      # data/testset.json: every module with generated inputs per function
 npm run check:ref          # runs the originals: data/ref.json
-ANTHROPIC_API_KEY=$(op read "op://NodeBox/NodeBox App/Anthropic/ANTHROPIC_API_KEY") npm run convert -- data/testset.json data/out
+ANTHROPIC_API_KEY=$(op read "op://NodeBox/NodeBox Converter/Anthropic/ANTHROPIC_API_KEY") npm run convert -- data/testset.json data/out
 npm run check:js           # runs the conversions: data/js.json
 npm run check:report       # data/report.json, and a summary with every failing function
 ```
