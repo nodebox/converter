@@ -29,7 +29,9 @@ content-type: application/json
 
 The response has `module` (the JavaScript), `functions` (status per function: `converted`, `partial` or `not-converted`, with notes), `suspectedBugs`, `warnings`, `problems` (what the checks still found wrong; empty when the module is usable), `model`, `promptVersion` and `cached`.
 
-Every module is checked before it is returned: it must parse, export each requested function, and import only from `nodebox` and `nodebox/platform`. A failed check goes back to the model once, with the problems listed. Usable results are cached in KV for 30 days by a hash of the source, the signatures, the prompt version and the model. Conversions that reach the model are rate-limited per IP. The service never logs source code.
+Every module is checked before it is returned: it must parse, export each requested function, and import only from `nodebox` and `nodebox/platform`. A failed check goes back to the model once, with the problems listed; a module that still fails is not returned.
+
+The endpoint is public, so it guards against being used as a general AI service. The source must be Python or Clojure that defines the requested functions, or the request is refused before it reaches the model. The prompt treats everything in the source as code to convert, never as instructions. The module may add only a few hundred characters of comments and strings per function beyond those in the source (round 1's real conversions stay well under), it may not be far longer than the source, and the notes, bugs and warnings are clipped. A question smuggled into a file comes back, at best, as the same question in a comment. Usable results are cached in KV for 30 days by a hash of the source, the signatures, the prompt version and the model. Conversions that reach the model are rate-limited per IP. The service never logs source code.
 
 ## Working here
 

@@ -1,7 +1,7 @@
 // The conversion service: POST /v1/convert takes one code library and returns its JavaScript conversion.
 // The NodeBox app calls it when a document links Python or Clojure code, after the user agreed to send it.
 
-import { ApiError, cacheKey, convert, DEFAULT_MODEL, promptVersion, type ConvertRequest, type ConvertResult, type Signature } from "./convert.ts";
+import { ApiError, cacheKey, checkSource, convert, DEFAULT_MODEL, promptVersion, type ConvertRequest, type ConvertResult, type Signature } from "./convert.ts";
 
 export interface Env {
   ANTHROPIC_API_KEY: string;
@@ -64,6 +64,8 @@ export async function handle(request: Request, env: Env, system: string): Promis
   }
   const req = readRequest(body);
   if (typeof req === "string") return error(400, req);
+  const notCode = checkSource(req);
+  if (notCode) return error(400, notCode);
 
   const model = env.MODEL || DEFAULT_MODEL;
   const version = await promptVersion(system);

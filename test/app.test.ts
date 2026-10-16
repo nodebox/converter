@@ -80,12 +80,29 @@ test("a failed check is sent back once, with the problems", async () => {
   assert.match(retry.messages[2].content, /Missing export: ratio/);
 });
 
-test("a conversion that still fails its checks is returned with its problems and not cached", async () => {
+test("a conversion that still fails its checks comes back without a module and is not cached", async () => {
   stubClaude({ ...good, module: "export function other() {}" });
   const env = makeEnv();
   const r = (await (await handle(post(body), env, "prompt")).json()) as Record<string, unknown>;
   assert.deepEqual(r.problems, ["Missing export: ratio"]);
+  assert.equal(r.module, "");
   assert.equal(env.store.size, 0);
+});
+
+test("a question sent as source never reaches the model", async () => {
+  const calls = stubClaude(good);
+  const res = await handle(post({ ...body, source: "What is the capital of France?", functions: [] }), makeEnv(), "prompt");
+  assert.equal(res.status, 400);
+  assert.deepEqual(await res.json(), { error: "The source defines no functions." });
+  assert.equal(calls.length, 0);
+});
+
+test("an answer hidden in the module is not returned", async () => {
+  const essay = "Paris is the capital of France. ".repeat(60);
+  stubClaude({ ...good, module: `// ${essay}\nexport function ratio(a, b) { return Math.floor(a / b); }` });
+  const r = (await (await handle(post(body), makeEnv(), "prompt")).json()) as Record<string, unknown>;
+  assert.equal(r.module, "");
+  assert.match((r.problems as string[])[0], /comments and strings that are not in the source/);
 });
 
 test("the rate limit applies to conversions that reach the model", async () => {

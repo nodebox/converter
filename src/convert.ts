@@ -165,6 +165,54 @@ function exportedNames(ast: Node): Set<string> {
   return names;
 }
 
+// ---- Keeping the service a converter ----
+// The endpoint is public, so someone could send a "source" that is really a question and read the answer
+// out of the conversion. The checks below make that useless: the source must be code that defines the
+// requested functions, and the response can carry little text the source did not already contain. Text
+// lives in comments and string literals, so those are measured on both sides.
+
+/** Characters inside comments and string literals of Python or Clojure source. A tokenizer, not a parser. */
+export function sourceProse(source: string, language: Language): number {
+  const re =
+    language === "python"
+      ? /#[^\n]*|[rRuUbB]{0,2}("""[\s\S]*?"""|'''[\s\S]*?'''|"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')/g
+      : /;[^\n]*|"(?:[^"\\]|\\.)*"/g;
+  let n = 0;
+  for (const m of source.matchAll(re)) n += m[0].length;
+  return n;
+}
+
+/** Characters inside comments, string literals and template text of a JavaScript module. */
+export function moduleProse(source: string): number {
+  let n = 0;
+  const ast = parse(source, { sourceType: "module", ecmaVersion: "latest", onComment: (_block, text) => (n += text.length) }) as unknown as Node;
+  walk(ast, (node) => {
+    if (node.type === "Literal" && typeof node.value === "string") n += (node.value as string).length;
+    if (node.type === "TemplateElement") n += ((node.value as { cooked?: string }).cooked ?? "").length;
+  });
+  return n;
+}
+
+/** Text the conversion may add beyond what the source had: notes on what changed, per function. */
+export function proseAllowance(req: ConvertRequest): number {
+  return 600 + 300 * req.functions.length;
+}
+
+/** The source must be code that defines every requested function, or at least one function when none are named. */
+export function checkSource(req: ConvertRequest): string | null {
+  const anyDef = req.language === "python" ? /^[ \t]*def\s+\w+\s*\(/m : /\(defn-?\s+\S+/;
+  if (!anyDef.test(req.source)) return "The source defines no functions.";
+  for (const f of req.functions) {
+    const name = f.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const defined =
+      req.language === "python"
+        ? new RegExp(`^[ \\t]*def\\s+${name}\\s*\\(`, "m").test(req.source)
+        : new RegExp(`\\(defn-?\\s+${name}[\\s\\[(]`).test(req.source);
+    if (!defined) return `The source does not define ${f.name}.`;
+  }
+  return null;
+}
+
 /** What is wrong with a converted module, as messages the model can act on. Empty when it is usable. */
 export function checkModule(req: ConvertRequest, source: string): string[] {
   let ast: Node;
@@ -188,7 +236,29 @@ export function checkModule(req: ConvertRequest, source: string): string[] {
       problems.push("require() is not allowed.");
     }
   });
+  if (!problems.length) {
+    const added = moduleProse(source) - sourceProse(req.source, req.language);
+    if (added > proseAllowance(req)) {
+      problems.push(`The module adds ${added} characters of comments and strings that are not in the source. Keep the original's comments and strings, and keep new comments to a short line where the code changed.`);
+    }
+    if (source.length > 16 * req.source.length + 4000) problems.push("The module is far longer than the source. Convert the code as it is, without adding to it.");
+  }
   return [...new Set(problems)];
+}
+
+const clip = (text: unknown, max: number) => {
+  const s = typeof text === "string" ? text : "";
+  return s.length > max ? `${s.slice(0, max - 1)}…` : s;
+};
+
+/** Bounds the free-text fields, which are the other place a conversion could carry unrelated text. */
+export function clipText(r: Pick<ConvertResult, "functions" | "suspectedBugs" | "warnings">, req: ConvertRequest) {
+  const names = new Set(req.functions.map((f) => jsName(f.name)));
+  return {
+    functions: (r.functions ?? []).slice(0, Math.max(req.functions.length, 50)).map((f) => ({ name: clip(f.name, 100), status: f.status, notes: clip(f.notes, 400) })),
+    suspectedBugs: (r.suspectedBugs ?? []).slice(0, 2 * Math.max(names.size, 3)).map((b) => ({ function: clip(b.function, 100), description: clip(b.description, 500), fix: clip(b.fix, 300) })),
+    warnings: (r.warnings ?? []).slice(0, 5).map((w) => clip(w, 400)),
+  };
 }
 
 async function sha256(text: string): Promise<string> {
@@ -278,10 +348,9 @@ export async function convert(req: ConvertRequest, opts: ConvertOptions): Promis
     );
   }
   return {
-    module: parsed?.module ?? "",
-    functions: parsed?.functions ?? [],
-    suspectedBugs: parsed?.suspectedBugs ?? [],
-    warnings: parsed?.warnings ?? [],
+    // A module that fails the checks is not returned: it may not be a conversion at all.
+    module: problems.length ? "" : (parsed?.module ?? ""),
+    ...clipText({ functions: parsed?.functions ?? [], suspectedBugs: parsed?.suspectedBugs ?? [], warnings: parsed?.warnings ?? [] }, req),
     problems,
     model: opts.model,
     promptVersion: await promptVersion(opts.system),
