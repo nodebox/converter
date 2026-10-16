@@ -20,6 +20,7 @@ git -C "$NB3" fetch -q origin
 git -C "$NB3" -c advice.detachedHead=false checkout -q "$NB3_REF"
 (cd "$NB3" && mvn -q -DskipTests compile && mvn -q dependency:build-classpath -Dmdep.outputFile=../nb3-cp.txt)
 # NodeLibrary loads core.ndbx through FileUtils.getApplicationFile, which looks in resources/.
+mkdir -p "$NB3/resources"
 [ -e "$NB3/resources/libraries" ] || ln -s ../libraries "$NB3/resources/libraries"
 (cd check && mvn -q dependency:build-classpath -Dmdep.outputFile=../.cache/graal-cp.txt)
 printf '%s:%s:%s' "$(cd "$NB3" && pwd)/target/classes" "$(cat .cache/nb3-cp.txt)" "$(cat .cache/graal-cp.txt)" > .cache/cp.txt
