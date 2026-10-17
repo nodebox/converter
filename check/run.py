@@ -69,7 +69,7 @@ def written_files(cwd):
         for n in names:
             p = os.path.join(dirpath, n)
             rel = os.path.relpath(p, cwd)
-            if rel.startswith(('.java/', '.cache/')): continue  # JVM and GraalJS caches
+            if rel.startswith(('.java/', '.cache/', 'Library/Caches/')): continue  # JVM and GraalJS caches (Library/Caches on macOS)
             src = os.path.join(fixtures, rel)
             data = open(p, 'rb').read()
             if not os.path.exists(src) or open(src, 'rb').read() != data:

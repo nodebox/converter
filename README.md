@@ -69,3 +69,9 @@ npm run check:report       # data/report.json, and a summary with every failing 
 ### Round 1 (2026-10-15)
 
 93 files, $0.30. Of the 63 files the test could judge fairly, 46 gave identical output, 9 refused with a clear reason, and 8 were wrong. The round 2 changes in the prompt and checker address the causes: point types, `homeDir()`, date functions, `mapPoints`, the port list taken from the function definition, booleans compared as NodeBox 3 passes them, and the faithful-with-bug-report rule.
+
+### Round 2 (2026-10-17)
+
+Same 93 files, with the round 2 prompt and checker, $0.43, 24.6 s median. All 93 passed the module checks. Of the 68 fairly testable files (the two clock-dependent `time.py` files left out), 58 gave identical output, 5 refused with a clear reason (Python `eval`, NodeBox 3 internals, full font names, SVG path data) and 5 were wrong: Python 2 dict order (`group_by`), non-integer seeds in a test-only generator (`simplexnoise`), two Voronoi variants, and `pi_funcs`, where the model again claims `xrange()` rejects a float, which Jython accepts. The conversions reported 83 suspected bugs; spot checks found two false ones (the `xrange` claim).
+
+Run `check:ref` and `check:js` on the same day: `time.py` formats today's date.
