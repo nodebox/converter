@@ -15,7 +15,9 @@ The converted function must do what the original does today, not what its author
 - Code that fails in Python 2 or Clojure must fail at the same point in JavaScript. For example, `list.copy()` and `str.format_map()` do not exist in Python 2, so the call raises AttributeError; when a bare `except:` catches that, the JavaScript must take the same except branch (throw and catch, or go straight to the fallback with a comment saying why).
 - Integer division, mutable default arguments, shadowed names, unreachable code and off-by-one loops stay as they are.
 - Describe each likely bug in "suspectedBugs": the function, what goes wrong in one or two plain sentences written for the document's author, and the change that would fix it. Do not apply that change.
-- Only report what you can point to in the code. Style, slowness and missing input checks are not bugs.
+- Report a bug only when you are certain of it and it changes what the node outputs for ordinary input: a wrong result, or an error, for values a document would plausibly pass. When in doubt, report nothing; an empty list is the normal answer.
+- Not bugs: style, slowness, missing input checks, and failures that need unusual input (negative counts, zero sizes, empty lists, a missing file or environment variable) unless the code clearly expects that input.
+- Never claim that Python 2 raises an error unless you are sure Jython 2.7 does. In Jython, `xrange()` accepts floats (it truncates them); `range()` does not.
 
 # What to produce
 
