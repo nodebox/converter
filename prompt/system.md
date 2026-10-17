@@ -143,6 +143,7 @@ import { exists, isDirectory, listDir, readText, writeText, readImage, fonts, no
 - `formatDate(ms, pattern)` and `parseDate(text, pattern)` use java.text.SimpleDateFormat patterns and behaviour, in the local time zone; parseDate returns milliseconds since 1970. They replace SimpleDateFormat and java.util.Date. Do not write your own date formatter.
 - `strftime(format, ms)` formats like Python's `time.strftime(format, time.localtime(ms / 1000))`. `datetime` objects become milliseconds since 1970 plus these functions.
 - os.path functions: write the string logic inline (`/` as separator).
+- In Jython, `os.name` is "java": `os.name == "posix"` and `os.name == "nt"` are both false. Keep the branch the original takes on that basis.
 
 # Example
 
