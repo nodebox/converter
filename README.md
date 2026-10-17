@@ -75,3 +75,7 @@ npm run check:report       # data/report.json, and a summary with every failing 
 Same 93 files, with the round 2 prompt and checker, $0.43, 24.6 s median. All 93 passed the module checks. Of the 68 fairly testable files (the two clock-dependent `time.py` files left out), 58 gave identical output, 5 refused with a clear reason (Python `eval`, NodeBox 3 internals, full font names, SVG path data) and 5 were wrong: Python 2 dict order (`group_by`), non-integer seeds in a test-only generator (`simplexnoise`), two Voronoi variants, and `pi_funcs`, where the model again claims `xrange()` rejects a float, which Jython accepts. The conversions reported 83 suspected bugs; spot checks found two false ones (the `xrange` claim).
 
 Run `check:ref` and `check:js` on the same day: `time.py` formats today's date.
+
+### Round 3 (2026-10-17)
+
+The suspected-bug rule tightened to certain bugs that change the output for ordinary input, plus two Jython facts (`xrange()` accepts floats, `os.name` is `"java"`). Still 58 of 68 fairly testable files identical, 80 of 96 functions (round 2: 79), 301 of 338 cases (299). `pi_funcs` now passes; `improved_pack_circles2`, correct in round 2, failed because the module assigned an undeclared variable. Suspected bugs dropped from 83 to 23, with none found false. $0.41, 21.2 s median.
