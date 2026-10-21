@@ -5,7 +5,9 @@
   "compatibility_date": "2026-09-01",
   "workers_dev": true,
   "preview_urls": false,
-  "observability": { "enabled": true },
+  // Our own log lines (one per conversion, cache hit or refusal, never the source) are kept for
+  // usage counts. Cloudflare's per-request invocation logs are off, so no IP addresses are stored.
+  "observability": { "enabled": true, "logs": { "enabled": true, "invocation_logs": false } },
   // The system prompt is bundled as text.
   "rules": [{ "type": "Text", "globs": ["**/*.md"], "fallthrough": true }],
   "kv_namespaces": [

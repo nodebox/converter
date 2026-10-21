@@ -71,12 +71,18 @@ export async function handle(request: Request, env: Env, system: string): Promis
   const version = await promptVersion(system);
   const key = await cacheKey(req, model, version);
   const hit = await env.CACHE.get<Response200>(key, "json");
-  if (hit) return json({ ...hit, cached: true });
+  if (hit) {
+    console.log(JSON.stringify({ event: "cache-hit", language: req.language, bytes: req.source.length }));
+    return json({ ...hit, cached: true });
+  }
 
   // Only conversions that reach the model count against the limit, so reopening a document stays free.
   const ip = request.headers.get("cf-connecting-ip") ?? "unknown";
   const { success } = await env.RATE_LIMITER.limit({ key: ip });
-  if (!success) return error(429, "Too many conversions. Try again in a minute.");
+  if (!success) {
+    console.log(JSON.stringify({ event: "rate-limited", language: req.language }));
+    return error(429, "Too many conversions. Try again in a minute.");
+  }
 
   let result: ConvertResult;
   try {
