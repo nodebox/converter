@@ -8,8 +8,8 @@
   // The system prompt is bundled as text.
   "rules": [{ "type": "Text", "globs": ["**/*.md"], "fallthrough": true }],
   "kv_namespaces": [
-    // Finished conversions, kept 30 days. Create with `npx wrangler kv namespace create converter-cache` and put its id here.
-    { "binding": "CACHE", "id": "REPLACE_WITH_KV_NAMESPACE_ID" }
+    // Finished conversions, kept 30 days (namespace "converter-cache").
+    { "binding": "CACHE", "id": "a1352895e26c465a95cb8ec61cb7096c" }
   ],
   "ratelimits": [
     // Conversions that reach the model, per client IP.
